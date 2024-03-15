@@ -1,8 +1,0 @@
-1) compose file with (1) the current app, (2) pull dockerimage for the "containerized-image-processing"
-2) create app that listens to a channel, downloads the imagedata as needed, passes that into the container for processing
-3) get the result out, save it somewhere, log the process, send out a message to rabbit
-
-A) when image built, add it to harbor-registry and activate by DOING "amplify-imageproc-PoC"
-
-docker build -t harbor-registry.whoi.edu/amplify/imageproc-runner:latest .
-
