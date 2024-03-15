@@ -52,6 +52,7 @@ def callback(msg):
         
         # upload results to s3
         output_key = f'dither/{msg["key"]}'
+        output_key = os.path.splitext(output_key)[0]+'.png'
         s3_upload(output_bucket, output_key, content_out)
         print('UPLOADED:', output_key)
         
