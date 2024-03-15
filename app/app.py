@@ -19,37 +19,51 @@ amqp_pwd = os.getenv('RABBITMQ_PASSWORD','guest')
 amqp_exchange = os.environ.get('AMQP_EXCHANGE_PROV', 'provenance')
 
 
+logger = Logger.amqp(amqp_host, amqp_user, amqp_pwd, amqp_exchange)
+
+
 def callback(msg):
 
-    # msg from upload
-    # message = dict(type="upload", bucket=bucket_name, key=file.filename)
-    print(msg)        
-    # fetch image path in msg from s3
-    content_in = s3_download(msg['bucket'], msg['key'])
-    content_in = dict(file=BytesIO(content_in))
-    print('DOWNLOADED:', msg['key'])
-    
-    # send to containerized-image-processing
-    endpoint = 'http://imageproc:8000/dither'
-    content_out = bytearray()
-    with requests.post(endpoint, files=content_in, stream=True) as resp:
-        for chunk in resp.iter_content():
-            content_out.extend(chunk)
-    print('IMG DITHERED')
-     
-    # upload results to s3
-    output_key = f'dither/{msg["key"]}'
-    s3_upload(output_bucket, output_key, content_out)
-    print('UPLOADED:', output_key)
-    
-    # log provenance
-    print('LOG PROVENENCE')
-    
-    # push to amqp
-    outgoing_msg = dict(type='imageproc', bucket=output_bucket, key=output_key)
-    amqp_publish(amqp_host, amqp_user, amqp_pwd, publish_to, outgoing_msg)
-    print('PUBLISHED:', outgoing_msg)
+    step_description = {
+        'description': 'Dither an image using the Floyd-Steinberg algorithm.',
+    }
 
+    with Step(name='dither-image', description=step_description, logger=logger) as step:
+        step.add_input(name='input-image', description={
+            'bucket': msg['bucket'],
+            'key': msg['key']
+        })
+
+        # msg from upload
+        # message = dict(type="upload", bucket=bucket_name, key=file.filename)
+        print(msg)        
+        # fetch image path in msg from s3
+        content_in = s3_download(msg['bucket'], msg['key'])
+        content_in = dict(file=BytesIO(content_in))
+        print('DOWNLOADED:', msg['key'])
+        
+        # send to containerized-image-processing
+        endpoint = 'http://imageproc:8000/dither'
+        content_out = bytearray()
+        with requests.post(endpoint, files=content_in, stream=True) as resp:
+            for chunk in resp.iter_content():
+                content_out.extend(chunk)
+        print('IMG DITHERED')
+        
+        # upload results to s3
+        output_key = f'dither/{msg["key"]}'
+        s3_upload(output_bucket, output_key, content_out)
+        print('UPLOADED:', output_key)
+        
+        # log provenance
+        print('LOG PROVENENCE')
+        
+        # push to amqp
+        outgoing_msg = dict(bucket=output_bucket, key=output_key)
+        amqp_publish(amqp_host, amqp_user, amqp_pwd, publish_to, outgoing_msg)
+        print('PUBLISHED:', outgoing_msg)
+
+        step.add_output(name='processed-image', description=outgoing_msg)
 
 print('HELLO WORLD')
 
