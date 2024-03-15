@@ -1,0 +1,88 @@
+version: '3'
+
+services:
+
+  upload:
+    image: ${UPLOAD_IMAGE}
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_EXCHANGE: upload
+      S3_URL: ${S3_URL}
+      S3_INPUT_BUCKET: ${S3_INPUT_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  imageproc-runner:
+    build: .
+    environment:
+      AMQP_HOST: rabbitmq
+      AMQP_USER: ${RABBITMQ_USER}
+      IMAGEPROC_HOST: imageproc
+      S3_URL: ${S3_URL}
+      S3_INPUT_BUCKET: ${S3_INPUT_BUCKET}
+      S3_OUTPUT_BUCKET: ${S3_OUTPUT_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      AMQP_EXCHANGE_SUBSCRIBE:  upload
+      AMQP_EXCHANGE_PUBLISH: dithered
+      AMQP_EXCHANGE_PROV: provenance
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  
+  imageproc:
+    image: ${IMAGEPROC_IMAGE}
+
+  provenancedb:
+    image: ${PROVENANCEDB_IMAGE}
+    environment:
+      COUCHDB_HOST: couchdb
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      COUCHDB_DB: ${COUCHDB_DB}
+      AMQP_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      couchdb:
+        condition: service_healthy
+
+  couchdb:
+    image: couchdb:latest
+    volumes:
+      - couchdb-data:/opt/couchdb/data
+    ports: # expose GUI
+      - "5984:5984"
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/"]
+      interval: 2s
+      timeout: 30s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports: # expose management GUI
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 2s
+      timeout: 30s
+      retries: 10
+
+volumes:
+  couchdb-data:

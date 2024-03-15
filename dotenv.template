@@ -1,0 +1,19 @@
+# service and pub/sub component images
+
+IMAGEPROC_RUNNER_IMAGE=myregistry/imageproc-runner:latest
+
+# data storage
+S3_URL=http://my.s3.host
+S3_ACCESS_KEY=FOOBAR
+S3_SECRET_KEY=BAZQUUX
+
+S3_OUTPUT_BUCKET=amplify-poc-output
+
+# messaging
+AMQP_HOST=servicename
+RABBITMQ_USER=myrabbitmquser
+RABBITMQ_PASSWORD=myrabbitmqpassword
+
+RABBITMQ_EXCHANGE=output
+
+
