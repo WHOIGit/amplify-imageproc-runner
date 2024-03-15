@@ -46,8 +46,13 @@ def callback(msg):
         endpoint = 'http://imageproc:8000/dither'
         content_out = bytearray()
         with requests.post(endpoint, files=content_in, stream=True) as resp:
-            for chunk in resp.iter_content():
-                content_out.extend(chunk)
+            #TODO get status code and do error logging
+            if resp.status_code == 200:
+                for chunk in resp.iter_content():
+                    content_out.extend(chunk)
+            else:
+                error_msg = resp.content.decode()
+                raise ValueError(error_msg)
         print('IMG DITHERED')
         
         # upload results to s3
