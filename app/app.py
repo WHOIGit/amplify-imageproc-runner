@@ -7,7 +7,7 @@ import requests
 
 from s3 import s3_upload, s3_download, bucketkey
 from provenance.capture import Logger, Step
-from provenance.amqp import amqp_subscribe, amqp_publish
+from amqp.rabbit import subscribe, publish
 
 subscribe_to = os.getenv('AMQP_EXCHANGE_SUBSCRIBE','upload')
 publish_to = os.getenv('AMQP_EXCHANGE_PUBLISH', 'dithered')
@@ -66,7 +66,8 @@ def callback(msg):
         
         # push to amqp
         outgoing_msg = dict(bucket=output_bucket, key=output_key)
-        amqp_publish(amqp_host, amqp_user, amqp_pwd, publish_to, outgoing_msg)
+        #amqp_publish(amqp_host, amqp_user, amqp_pwd, publish_to, outgoing_msg)
+        publish(outgoing_msg, amqp_host, amqp_user, amqp_pwd, publish_to)
         print('PUBLISHED:', outgoing_msg)
 
         step.add_output(name='processed-image', description=outgoing_msg)
@@ -74,7 +75,7 @@ def callback(msg):
 print('HELLO WORLD')
 
 # LISTENS TO subscribe_to AND RUNS callback for each incomming message
-amqp_subscribe(amqp_host, amqp_user, amqp_pwd, subscribe_to, callback)
+subscribe(callback, amqp_host, amqp_user, amqp_pwd, subscribe_to)
 
 
 

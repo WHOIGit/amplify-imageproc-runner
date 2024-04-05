@@ -2,4 +2,5 @@ boto3
 pika
 requests
 git+https://github.com/WHOIGit/provenance-capture.git
+git+https://github.com/WHOIGit/amplify-amqp-utils.git
 
