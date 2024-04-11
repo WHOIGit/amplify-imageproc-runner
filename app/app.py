@@ -19,7 +19,7 @@ amqp_user = os.getenv('RABBITMQ_USER','guest')
 amqp_pwd = os.getenv('RABBITMQ_PASSWORD','guest')
 amqp_exchange = os.getenv('AMQP_EXCHANGE_PROV', 'provenance')
 
-s3_endpoint=os.getenv('S3_URL', 'http://vast.whoi.edu')
+s3_endpoint=os.getenv('S3_URL', 'http://localhost:9000')
 s3_key=os.getenv('S3_ACCESS_KEY', '')
 s3_pwd=os.getenv('S3_SECRET_KEY', '')
 
