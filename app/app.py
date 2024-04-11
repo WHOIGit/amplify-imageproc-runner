@@ -1,8 +1,6 @@
 import os
-import json
 from io import BytesIO
 import asyncio
-import datetime as dt
 
 import httpx
 
@@ -73,7 +71,3 @@ async def callback(msg):
 
 # LISTENS TO subscribe_to AND RUNS callback for each incomming message
 asyncio.run( aio_subscribe(callback, amqp_host, amqp_user, amqp_pwd, subscribe_to) )
-
-
-
-
