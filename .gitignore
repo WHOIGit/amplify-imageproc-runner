@@ -2,3 +2,5 @@
 __pycache__
 .idea
 NOTES.txt
+_venv_
+venv
