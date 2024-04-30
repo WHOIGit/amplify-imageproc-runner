@@ -7,6 +7,6 @@ An [AMPLIfy PoC v1](https://github.com/WHOIGit/amplify-imageproc-poc) container 
 5. logs all provenance steps
 6. sends new message to rabbitmq on a new channel
 
-
+Follow the link above to use the container as part of a PoC demo.
 
 
